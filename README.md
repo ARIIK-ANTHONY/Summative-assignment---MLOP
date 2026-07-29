@@ -6,7 +6,7 @@ Image classification pipeline for African wildlife (buffalo, elephant, rhino, ze
 
 ## Video Demo
 
-**YouTube:** https://youtu.be/vZEmYYFnCSc (demo of prediction + upload/retrain, camera on)
+**YouTube:** https://youtu.be/ZKaPQMBtc0k (demo of prediction + upload/retrain, camera on)
 
 ## Deployed URLs
 
