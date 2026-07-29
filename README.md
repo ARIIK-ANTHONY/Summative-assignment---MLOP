@@ -8,7 +8,7 @@ Image classification pipeline for African wildlife (buffalo, elephant, rhino, ze
 
 ## Deployed URLs
 
-- **API:** https://summative-assignment-mlop-0kui.onrender.com (Swagger docs at `/docs`)
+- **API:** (https://summative-assignment-mlop-0kui.onrender.com/docs)
 - **UI:** _TODO - add public URL once deployed_
 
 ## Project Description
