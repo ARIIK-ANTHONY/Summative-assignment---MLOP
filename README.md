@@ -2,14 +2,18 @@
 
 Image classification pipeline for African wildlife (buffalo, elephant, rhino, zebra) using MobileNetV2 transfer learning, served via a FastAPI backend and a Streamlit UI, with retraining and load-testing support.
 
+**GitHub repo:** https://github.com/ARIIK-ANTHONY/Summative-assignment---MLOP
+
 ## Video Demo
 
 **YouTube:** _TODO - add link_ (demo of prediction + upload/retrain, camera on)
 
 ## Deployed URLs
 
-- **API:** (https://summative-assignment-mlop-0kui.onrender.com/docs)
-- **UI:** _TODO - add public URL once deployed_
+- **UI:** https://african-wildlife-ui.onrender.com/ — start here, this is the app: Predict, Data Insights, and Upload & Retrain tabs
+- **API:** https://summative-assignment-mlop-0kui.onrender.com/docs — interactive Swagger docs for the underlying FastAPI service (`/predict`, `/upload`, `/retrain`, `/health`)
+
+**Note on retraining on the deployed version:** both services above run on Render's free tier (512MB RAM). Prediction and Data Insights work fine there, but a real retraining run (`model.fit()`) needs more memory than 512MB provides and will crash the free instance. Retraining is demonstrated in the video against a local run of the same code instead (see [Setup Instructions](#setup-instructions) below to run it yourself) — the trigger, upload, preprocessing, and retraining logic are identical either way, only the deployed instance's RAM is the limiting factor.
 
 ## Project Description
 
@@ -69,8 +73,8 @@ Project_name/
 
 ### 1. Clone the repository
 ```bash
-git clone <your-repo-url>
-cd Project_name
+git clone https://github.com/ARIIK-ANTHONY/Summative-assignment---MLOP.git
+cd Summative-assignment---MLOP
 ```
 
 ### 2. Install dependencies
@@ -129,7 +133,7 @@ In a second terminal (API must be running):
 ```bash
 streamlit run streamlit_app.py
 ```
-Opens at http://localhost:8501 with three tabs: **Predict** (upload an image, click Predict), **Data Insights** (dataset visualizations), and **Upload & Retrain** (bulk upload + retraining trigger + status). The API URL is set via the `API_BASE_URL` environment variable (defaults to `http://localhost:8000`; point it at the deployed API's public URL once hosted).
+Opens at http://localhost:8501 with three tabs: **Predict** (upload an image, click Predict), **Data Insights** (dataset visualizations), and **Upload & Retrain** (bulk upload + retraining trigger + status). The API URL is set via the `API_BASE_URL` environment variable (defaults to `http://localhost:8000`; the deployed UI points it at `https://summative-assignment-mlop-0kui.onrender.com`).
 
 ### 8. Run with Docker
 ```bash
@@ -149,14 +153,17 @@ locust -f locustfile.py --host http://localhost:8000
 Open http://localhost:8089, set number of users + spawn rate, and start. `locustfile.py` sends a mix of `/predict` requests (using real sample images from `data/test/`) and `/health` checks. See [Results from Flood Request Simulation](#results-from-flood-request-simulation) below.
 
 ### 10. Deploy to the cloud (Render)
-This repo includes a [`render.yaml`](render.yaml) Blueprint that deploys both services straight from the existing Dockerfiles — no local Docker install needed, Render builds the images on their end.
+This project is deployed on [Render](https://render.com) as two separate free Docker-based web services, no local Docker install needed since Render builds the images server-side:
 
 1. Push this repo to GitHub (already done if you're reading this on GitHub).
-2. On [render.com](https://render.com), sign up/log in, then **New > Blueprint**, and connect this GitHub repo. Render reads `render.yaml` and provisions two free web services: `african-wildlife-api` (from `Dockerfile`) and `african-wildlife-ui` (from `Dockerfile.streamlit`).
-3. Once `african-wildlife-api` finishes its first deploy, copy its assigned URL (Render shows it on the service page, e.g. `https://african-wildlife-api-xxxx.onrender.com`). If it doesn't exactly match the `API_BASE_URL` value already set in `render.yaml`, update that env var on the `african-wildlife-ui` service to the real URL and let it redeploy.
-4. Open the `african-wildlife-ui` service's URL — that's the live UI, talking to the live API.
+2. **API service:** Render dashboard → **New → Web Service** → connect this repo → Dockerfile Path `./Dockerfile` → Health Check Path `/health` → Free plan → Create. This is what's live at https://summative-assignment-mlop-0kui.onrender.com.
+3. **UI service:** Render dashboard → **New → Web Service** → connect this repo again → Dockerfile Path `./Dockerfile.streamlit` → Health Check Path `/` → add environment variable `API_BASE_URL` = the API service's URL from step 2 → Free plan → Create. This is what's live at https://african-wildlife-ui.onrender.com.
 
-**Free-tier caveats worth knowing before you demo:** free Render web services spin down after ~15 minutes idle (the next request wakes it back up but takes 30-60s), and free services don't have a persistent disk — a model retrained live will work for that session but won't survive the service restarting/redeploying. Neither of these affects the retraining/prediction *demonstration* itself, they're just not durable across restarts on the free tier.
+**Free-tier limitations found while deploying this:**
+- Free Render web services spin down after ~15 minutes idle (the next request wakes them back up but takes 30-60s).
+- Free services have no persistent disk — a model retrained live works for that session but won't survive a restart/redeploy.
+- **512MB RAM is enough for prediction/inference but not for actually running `model.fit()`** — a live retrain attempt on the free API service OOM-crashes the container (confirmed during development; the API auto-restarts afterward, `/predict` and `/health` are unaffected). This is why the video demonstrates retraining against a local run instead — the code path is identical, only the free tier's memory ceiling is the blocker. A paid Render plan (2GB+ RAM) or a platform with more free RAM would resolve this if needed.
+- This repo also has a [`render.yaml`](render.yaml) Blueprint and a [`Dockerfile.combined`](Dockerfile.combined)/[`start.sh`](start.sh) that run the API and UI together in a single container (simpler, one URL, no `API_BASE_URL` wiring needed) — tested and confirmed working locally, but it hits the same 512MB ceiling on Render's free tier since it runs TensorFlow and Streamlit in one instance instead of two. It would work as-is on any host with more free RAM per container.
 
 ## Model Evaluation Summary
 
