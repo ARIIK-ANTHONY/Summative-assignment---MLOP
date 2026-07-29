@@ -11,6 +11,7 @@ functionality.
 """
 import os
 import sys
+import time
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -179,8 +180,18 @@ with tab_retrain:
                 st.error(f"Could not start retraining: {exc}")
     with col2:
         if st.button("Check status"):
-            try:
-                status = requests.get(f"{api_base_url}/retrain/status", timeout=5).json()
-                st.json(status)
-            except requests.RequestException as exc:
-                st.error(f"Could not fetch status: {exc}")
+            st.session_state["watch_retrain"] = True
+
+    if st.session_state.get("watch_retrain"):
+        try:
+            status = requests.get(f"{api_base_url}/retrain/status", timeout=5).json()
+            st.json(status)
+            if status.get("status") == "running":
+                st.caption("Auto-refreshing every 3s while retraining runs...")
+                time.sleep(3)
+                st.rerun()
+            else:
+                st.session_state["watch_retrain"] = False
+        except requests.RequestException as exc:
+            st.error(f"Could not fetch status: {exc}")
+            st.session_state["watch_retrain"] = False
