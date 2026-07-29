@@ -1,0 +1,17 @@
+services:
+  - name: african-wildlife-api
+    type: web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+
+  - name: african-wildlife-ui
+    type: web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile.streamlit
+    healthCheckPath: /
+    envVars:
+      - key: API_BASE_URL
+        value: https://african-wildlife-api.onrender.com

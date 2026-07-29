@@ -148,6 +148,16 @@ locust -f locustfile.py --host http://localhost:8000
 ```
 Open http://localhost:8089, set number of users + spawn rate, and start. `locustfile.py` sends a mix of `/predict` requests (using real sample images from `data/test/`) and `/health` checks. See [Results from Flood Request Simulation](#results-from-flood-request-simulation) below.
 
+### 10. Deploy to the cloud (Render)
+This repo includes a [`render.yaml`](render.yaml) Blueprint that deploys both services straight from the existing Dockerfiles — no local Docker install needed, Render builds the images on their end.
+
+1. Push this repo to GitHub (already done if you're reading this on GitHub).
+2. On [render.com](https://render.com), sign up/log in, then **New > Blueprint**, and connect this GitHub repo. Render reads `render.yaml` and provisions two free web services: `african-wildlife-api` (from `Dockerfile`) and `african-wildlife-ui` (from `Dockerfile.streamlit`).
+3. Once `african-wildlife-api` finishes its first deploy, copy its assigned URL (Render shows it on the service page, e.g. `https://african-wildlife-api-xxxx.onrender.com`). If it doesn't exactly match the `API_BASE_URL` value already set in `render.yaml`, update that env var on the `african-wildlife-ui` service to the real URL and let it redeploy.
+4. Open the `african-wildlife-ui` service's URL — that's the live UI, talking to the live API.
+
+**Free-tier caveats worth knowing before you demo:** free Render web services spin down after ~15 minutes idle (the next request wakes it back up but takes 30-60s), and free services don't have a persistent disk — a model retrained live will work for that session but won't survive the service restarting/redeploying. Neither of these affects the retraining/prediction *demonstration* itself, they're just not durable across restarts on the free tier.
+
 ## Model Evaluation Summary
 
 See `notebook/project_name.ipynb` for the full breakdown, including the confusion matrix and per-class classification report from the original training run. The notebook reports Accuracy, Precision, Recall, F1-score, a Confusion Matrix, and a Classification Report on the held-out test set, both before and after fine-tuning.
