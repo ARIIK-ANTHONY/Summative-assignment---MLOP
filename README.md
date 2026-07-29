@@ -120,6 +120,7 @@ print(result)
 ```
 
 ### 6. Run the API
+Make sure the venv from step 2 is activated in this terminal (`venv\Scripts\activate` on Windows, `source venv/bin/activate` otherwise) — needed in every new terminal you open, since that's where `uvicorn`, `streamlit`, etc. are actually installed.
 ```bash
 python -m uvicorn api:app --reload --port 8000
 ```
@@ -135,7 +136,7 @@ Interactive Swagger docs: http://localhost:8000/docs
 | GET | `/retrain/status` | poll while retraining runs (`idle` / `running` / `done` / `failed`) |
 
 ### 7. Run the UI
-In a second terminal (API must be running):
+In a second terminal, with the venv activated again in this new terminal (API from step 6 must still be running):
 ```bash
 python -m streamlit run streamlit_app.py
 ```
