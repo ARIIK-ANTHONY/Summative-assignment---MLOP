@@ -17,7 +17,12 @@ from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
 IMG_SIZE = (224, 224)
-BATCH_SIZE = 32
+# Kept small (rather than the notebook's 32) so retraining fits in memory-
+# constrained deployments (e.g. Render's free 512MB tier) without changing
+# the preprocessing itself - training throughput isn't a concern here since
+# retraining runs a handful of epochs on a small uploaded batch, not full
+# from-scratch training.
+BATCH_SIZE = 8
 CLASS_NAMES = ["buffalo", "elephant", "rhino", "zebra"]
 
 

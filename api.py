@@ -6,6 +6,7 @@ prediction, bulk data upload for retraining, and a retraining trigger.
 Reuses the exact same preprocessing/model code as the training notebook
 so training and serving stay in sync. Interactive docs at /docs.
 """
+import gc
 import os
 import shutil
 import sys
@@ -87,6 +88,12 @@ def _run_retraining(epochs: int):
         started_at=datetime.now(timezone.utc).isoformat(), finished_at=None,
     )
     try:
+        # Free the cached inference model before loading a fresh copy for
+        # training - on memory-constrained deployments, holding both the
+        # serving model and the training model at once risks an OOM crash.
+        reload_model()
+        gc.collect()
+
         if os.path.isdir(UPLOAD_DIR):
             for class_name in os.listdir(UPLOAD_DIR):
                 src_dir = os.path.join(UPLOAD_DIR, class_name)
