@@ -80,8 +80,8 @@ cd Summative-assignment---MLOP
 ### 2. Install dependencies
 Requires Python 3.11+ (the saved `.keras` model files need Keras 3.15+, which requires Python >= 3.11).
 ```bash
-python3 -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+python -m venv venv          # some systems use `python3` instead of `python`
+source venv/bin/activate     # Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
@@ -89,7 +89,10 @@ pip install -r requirements.txt
 The `data/train/` and `data/test/` folders are already included, sorted by class. If you need to regenerate them from scratch, the notebook's Step 2 handles it with `kagglehub` (`kagglehub.dataset_download("biancaferreira/african-wildlife")` — handles Kaggle auth and caching on its own, no manual API key setup), then Step 3 runs the conversion logic in `src/preprocessing.py` (`convert_yolo_to_classification`), which walks the extracted YOLO-format images/labels, does its own 85/15 train/test split per class, and writes out the `data/train/<class>/` and `data/test/<class>/` folders.
 
 ### 4. Train / retrain the model
-Open and run `notebook/project_name.ipynb` top to bottom (runs locally end to end; a GPU speeds it up but CPU works fine too, just slower). It walks through:
+```bash
+jupyter notebook notebook/project_name.ipynb
+```
+Run it top to bottom (runs locally end to end; a GPU speeds it up but CPU works fine too, just slower). It walks through:
 - loading and converting the dataset
 - exploring the data (class balance, sample images, image size checks)
 - preprocessing + augmentation
