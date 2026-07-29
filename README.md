@@ -71,6 +71,8 @@ Project_name/
 
 ## Setup Instructions
 
+**Quickest path to see it working (prediction + retraining):** steps 1, 2, 6, and 7 below. Step 3 (dataset) is already done — the data is in the repo. Step 4 (notebook) is optional to re-run — it's already fully executed with saved outputs, so it can just be read. Steps 8-10 (Docker, Locust, cloud deploy) are supplementary.
+
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/ARIIK-ANTHONY/Summative-assignment---MLOP.git
@@ -89,10 +91,11 @@ pip install -r requirements.txt
 The `data/train/` and `data/test/` folders are already included, sorted by class. If you need to regenerate them from scratch, the notebook's Step 2 handles it with `kagglehub` (`kagglehub.dataset_download("biancaferreira/african-wildlife")` — handles Kaggle auth and caching on its own, no manual API key setup), then Step 3 runs the conversion logic in `src/preprocessing.py` (`convert_yolo_to_classification`), which walks the extracted YOLO-format images/labels, does its own 85/15 train/test split per class, and writes out the `data/train/<class>/` and `data/test/<class>/` folders.
 
 ### 4. Train / retrain the model
+The notebook is already fully executed with its outputs saved (preprocessing, training, evaluation, fine-tuning) — open it to review as-is, no need to re-run it:
 ```bash
 jupyter notebook notebook/project_name.ipynb
 ```
-Run it top to bottom (runs locally end to end; a GPU speeds it up but CPU works fine too, just slower). It walks through:
+If you do want to re-run it top to bottom, it works locally end to end (a GPU speeds it up, CPU works fine too, just slower). It walks through:
 - loading and converting the dataset
 - exploring the data (class balance, sample images, image size checks)
 - preprocessing + augmentation
@@ -118,7 +121,7 @@ print(result)
 
 ### 6. Run the API
 ```bash
-uvicorn api:app --reload --port 8000
+python -m uvicorn api:app --reload --port 8000
 ```
 Interactive Swagger docs: http://localhost:8000/docs
 
@@ -134,7 +137,7 @@ Interactive Swagger docs: http://localhost:8000/docs
 ### 7. Run the UI
 In a second terminal (API must be running):
 ```bash
-streamlit run streamlit_app.py
+python -m streamlit run streamlit_app.py
 ```
 Opens at http://localhost:8501 with three tabs: **Predict** (upload an image, click Predict), **Data Insights** (dataset visualizations), and **Upload & Retrain** (bulk upload + retraining trigger + status). The API URL is set via the `API_BASE_URL` environment variable (defaults to `http://localhost:8000`; the deployed UI points it at `https://summative-assignment-mlop-0kui.onrender.com`).
 
