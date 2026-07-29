@@ -1,0 +1,15 @@
+tensorflow==2.21.0
+keras>=3.15.0
+pillow
+numpy
+scikit-learn
+pandas
+matplotlib
+seaborn
+kagglehub
+fastapi
+uvicorn[standard]
+python-multipart
+streamlit
+requests
+locust
