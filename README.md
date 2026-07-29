@@ -47,7 +47,12 @@ Project_name/
 ├── locustfile.py                 # flood-request simulation against the API
 ├── Dockerfile                    # containerizes the API
 ├── Dockerfile.streamlit          # containerizes the UI
+├── Dockerfile.combined           # API + UI in one container (for hosts with more free RAM)
+├── start.sh                      # entrypoint used by Dockerfile.combined
 ├── docker-compose.yml            # runs API + UI together
+├── render.yaml                   # Render Blueprint (documents the deploy config)
+│
+├── locust_results/                # raw CSV output from the flood simulation runs
 │
 ├── notebook/
 │   └── project_name.ipynb        # full training + evaluation notebook
@@ -176,16 +181,18 @@ This project is deployed on [Render](https://render.com) as two separate free Do
 
 See `notebook/project_name.ipynb` for the full breakdown, including the confusion matrix and per-class classification report from the original training run. The notebook reports Accuracy, Precision, Recall, F1-score, a Confusion Matrix, and a Classification Report on the held-out test set, both before and after fine-tuning.
 
-Current `models/final_model.keras` (which has since been fine-tuned for one additional epoch via the `/retrain` endpoint) scores as follows on the held-out test set (228 images):
+The model has been retrained several times since the notebook's original run - through manual testing and again during the demo video's retraining trigger - each time continuing from the previously saved weights via the `/retrain` endpoint. Re-evaluating the current `models/final_model.keras` on the held-out test set (228 images) gives:
 
 | Class | Precision | Recall | F1-score | Support |
 |---|---|---|---|---|
-| buffalo | 0.9818 | 0.9474 | 0.9643 | 57 |
-| elephant | 0.9153 | 0.9474 | 0.9310 | 57 |
-| rhino | 0.9123 | 0.9286 | 0.9204 | 56 |
+| buffalo | 0.9815 | 0.9298 | 0.9550 | 57 |
+| elephant | 0.9808 | 0.8947 | 0.9358 | 57 |
+| rhino | 0.8462 | 0.9821 | 0.9091 | 56 |
 | zebra | 0.9825 | 0.9655 | 0.9739 | 58 |
 
-**Overall accuracy: 94.74%** (macro F1: 0.9474)
+**Overall accuracy: 94.30%** (macro F1: 0.9434)
+
+This is consistent with the notebook's own reported numbers (~94-95% before/after fine-tuning) - performance holds up after multiple rounds of incremental retraining on small batches of new data, which is what the retraining feature is designed to demonstrate.
 
 ## Data Visualizations
 
