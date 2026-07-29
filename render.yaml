@@ -6,12 +6,12 @@ services:
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
 
-  - name: african-wildlife-ui
+  # Combined API + Streamlit UI in one container/service (simplest option:
+  # one URL, no cross-service env var to wire up). Streamlit talks to the
+  # API over localhost inside the same container.
+  - name: african-wildlife-app
     type: web
     runtime: docker
     plan: free
-    dockerfilePath: ./Dockerfile.streamlit
+    dockerfilePath: ./Dockerfile.combined
     healthCheckPath: /
-    envVars:
-      - key: API_BASE_URL
-        value: https://african-wildlife-api.onrender.com
