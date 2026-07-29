@@ -172,12 +172,14 @@ Three data interpretations, available both in the notebook (pre-training) and li
 
 ## Results from Flood Request Simulation
 
-_TODO — after deploying, run `locustfile.py` against the API with different numbers of running containers and record results here, e.g.:_
+**Methodology note:** Docker Desktop wasn't available in the dev environment used for this run, so instead of `docker compose up --scale api=N`, each "container" below is one `uvicorn` worker process (`--workers N`) serving the exact same API code — each worker is an independent OS process with its own model instance in memory, which for this stateless, CPU-bound inference workload is the same unit of horizontal scaling that separate containers behind a load balancer would provide. All runs used `locust -f locustfile.py --host http://127.0.0.1:8000 --headless -u 20 -r 5 -t 40s` (20 users, spawn rate 5/s, 40s duration) sending the same real `/predict` + `/health` traffic mix from `locustfile.py` on a 12-core CPU-only machine. If you redeploy with real Docker containers or on a cloud platform, rerun this exact command against 1/2/4 containers to replace these numbers.
 
-| Containers | Users | Requests/s | Median latency (ms) | 95th %ile latency (ms) | Failures |
-|---|---|---|---|---|---|
-| 1 | | | | | |
-| 2 | | | | | |
-| 4 | | | | | |
+| Containers (worker processes) | Requests | Requests/s | Median latency (ms) | Avg latency (ms) | 95th %ile latency (ms) | Failures |
+|---|---|---|---|---|---|---|
+| 1 | 330 | 8.68 | 830 | 1012 | 2700 | 0 |
+| 2 | 421 | 10.68 | 290 | 563 | 2200 | 0 |
+| 4 | 433 | 10.99 | 220 | 524 | 1400 | 0 |
 
-_Note: with a single container, a local smoke test (5 concurrent users, CPU-only inference) showed latency climbing sharply under load — median response time went from ~320ms to >6s at the tail, because one Keras model instance handles requests one at a time. That's the effect more containers (behind a load balancer) should visibly reduce — worth calling out explicitly in the writeup._
+Raw Locust CSV output for all three runs is in [`locust_results/`](locust_results/) (`w1_stats.csv`, `w2_stats.csv`, `w4_stats.csv`, plus per-second history).
+
+**What the numbers show:** going from 1 → 2 workers roughly halves median latency (830ms → 290ms) because a single Keras model instance handles predictions one at a time, so concurrent requests queue up behind it — adding a second instance lets two requests be scored in parallel. Going 2 → 4 gives a smaller further improvement in median/p95 (290ms → 220ms, p95 2200ms → 1400ms), with diminishing returns because all workers were competing for the same 12 physical cores on one machine rather than getting dedicated hardware the way separate containers on a cluster would — the p99 tail (4400ms → 6300ms) actually got noisier at 4 workers for that reason. Zero failures at every level — the API stayed correct under load, it just queued.
